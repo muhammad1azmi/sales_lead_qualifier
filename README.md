@@ -1,133 +1,185 @@
-WhatsApp Lead Bot (WLB) 🤖
+# 🚀 WhatsApp Lead Bot (WLB)
 
-The WhatsApp Lead Bot (WLB) is an intelligent AI agent designed for Indosat Ooredoo Hutchison B2B. It automates the qualification of inbound leads via WhatsApp, ensuring that only high-quality, Sales Qualified Leads (SQLs) are handed off to human agents.
+**WhatsApp Lead Bot (WLB)** is an AI-powered qualification agent built.
 
-Built with Google Agent Development Kit (ADK), Gemini 2.5 Flash, and Firebase Firestore.
+It automates inbound WhatsApp conversations, performs full **BANT qualification**, and hands off only **high-intent SQL leads** to human sales teams.
 
-🚀 Key Features
+Powered by:
 
-BANT Qualification: Automatically collects Budget, Authority (implied), Need, and Timeline data.
+- **Google Agent Development Kit (ADK)**
+- **Gemini 2.5 Flash**
+- **Firebase Firestore**
+- **Google Cloud Secret Manager**
 
-Smart Persistence: Stores conversation state and final lead data in Google Cloud Firestore.
+---
 
-Secure: Fetches API keys securely from Google Cloud Secret Manager (no hardcoded keys).
+## ✨ Features
 
-Guardrails:
+- **🔎 BANT Qualification**
+    
+    Automatically captures Budget, Authority (inferred), Need, and Timeline.
+    
+- **💾 Persistent State**
+    
+    Conversation progress and final lead data are securely saved in **Firestore**.
+    
+- **🔐 Secure Secrets**
+    
+    API keys and credentials retrieved on-demand from **Secret Manager**.
+    
+- **🛡 Guardrails & Validation**
+    - Rejects pricing or contract discussions.
+    - Identifies and disqualifies unqualified leads (e.g., “just looking”, “no budget”).
+    - Ensures all required fields are collected before handoff.
 
-Strictly avoids discussing pricing or specific contracts.
+---
 
-Automatically disqualifies "just browsing" or "no budget" leads.
+## 📦 Tech Stack
 
-Validates data completeness before handoff.
+| Component | Usage |
+| --- | --- |
+| **Python 3.10+** | Primary runtime |
+| **Google ADK** | Agent orchestration |
+| **Gemini 2.5 Flash** | LLM reasoning & dialog |
+| **Firestore** | Lead persistence |
+| **Secret Manager** | API key storage |
+| **Google Cloud CLI** | Local auth |
 
-🛠️ Prerequisites
+---
 
-Python 3.10+ installed.
+## 🛠 Prerequisites
 
-Google Cloud Project with the following APIs enabled:
+Before you begin, ensure you have:
 
-Secret Manager API
+- ✔ Python **3.10+**
+- ✔ A **Google Cloud Project**
+- ✔ **Firestore**, **Secret Manager**, and (optionally) **Vertex AI** enabled
+- ✔ Installed & authenticated **Google Cloud CLI**
+    
+    ```bash
+    gcloud auth application-default login
+    
+    ```
+    
 
-Firestore API
+---
 
-Vertex AI API (optional, if not using Studio keys)
+## ⚙️ Installation & Setup
 
-Google Cloud CLI (gcloud) installed and authenticated.
+### 1️⃣ Clone the repository
 
-⚙️ Setup & Configuration
-
-1. Google Cloud Setup
-
-A. Firestore
-
-Go to the Firebase Console or GCP Console.
-
-Create a Firestore database (in Native mode).
-
-Ensure your local environment has permission to write to it (Owner/Editor role is fine for dev).
-
-B. Secret Manager
-
-Go to Secret Manager.
-
-Create a new secret named gemini-api-key.
-
-Add a new version containing your actual Google AI Studio API Key.
-
-2. Local Environment
-
-Clone this repository and navigate to the project folder:
-
+```bash
+git clone https://github.com/yourname/wlb.git
 cd wlb_project
 
+```
 
-Install dependencies:
+### 2️⃣ Install dependencies
 
+```bash
 pip install -r requirements.txt
 
+```
 
-Authenticate your local machine (Application Default Credentials):
+### 3️⃣ Configure Google Cloud
 
-gcloud auth application-default login
+### **A. Firestore**
 
+1. Open Firebase or GCP Console
+2. Create a Firestore **Native mode** database
+3. Ensure your local ADC user has write permissions
 
-Set your Project ID:
+### **B. Secret Manager**
 
-# Replace with your actual Project ID
+Create a secret named:
+
+```
+gemini-api-key
+
+```
+
+Add a new version with your actual **Google AI Studio** key.
+
+### **C. Environment Variable**
+
+```bash
 export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
 
+```
 
-▶️ Running the Agent
+---
 
-We use the ADK web interface for testing and interaction.
+## ▶️ Running the Agent
 
-Launch the ADK Server:
+Use the ADK web interface for local development and testing.
 
-adk web
+1. **Start ADK:**
+    
+    ```bash
+    adk web
+    
+    ```
+    
+2. **Open browser:**
+    
+    [http://localhost:8000](http://localhost:8000/)
+    
+3. **Select the agent:**
+    
+    Choose `whatsapp_lead_bot`
+    
 
+---
 
-Open Browser:
-Navigate to http://localhost:8000 (or the port shown in your terminal).
+## 📂 Project Structure
 
-Select Agent:
-Choose whatsapp_lead_bot from the dropdown menu.
-
-📂 Project Structure
-
+```
 wlb_project/
-├── requirements.txt          # Python dependencies
-├── README.md                 # This documentation
-└── wlb_agent/                # Main Package
-    ├── __init__.py           # Enforces config loading before agent init
-    ├── agent.py              # Logic: Persona, System Instructions, Guardrails
-    ├── config.py             # Infra: Secret Manager & Firestore setup
-    └── tools.py              # Capabilities: BANT logic & DB writes
+├── requirements.txt         # Python dependencies
+├── README.md                # This documentation
+└── wlb_agent/
+    ├── __init__.py          # Ensures config loads first
+    ├── agent.py             # Persona, guardrails, LLM config
+    ├── config.py            # Firestore + Secret Manager setup
+    └── tools.py             # BANT logic & DB interactions
 
+```
 
-🧠 How it Works
+---
 
-The Logic Flow (tools.py)
+## 🧠 How It Works
 
-update_lead_profile: This tool runs repeatedly. It fills slots in the session state (full_name, budget, etc.) as the user speaks. It calculates missing fields and instructs the LLM what to ask next.
+### **1. update_lead_profile (tools.py)**
 
-disqualify_lead: If the user signals low intent, this tool flags the session as disqualified and ends the flow.
+Continuously fills in the session profile (name, need, budget, timeline).
 
-finalize_handoff:
+Identifies gaps and instructs the LLM to ask only what is missing.
 
-Validates that all 5 required fields are present.
+### **2. disqualify_lead**
 
-Writes the structured JSON payload to the Firestore leads collection.
+Triggered when:
 
-Returns the success signal to the Agent to send the final closing message.
+- User expresses low/no intent
+- Budget = 0
+- Browsing only
 
-The Persona (agent.py)
+Marks lead as *Disqualified* and gracefully ends the flow.
 
-The agent is instructed to act like a human specialist. It acknowledges the ad source immediately ("Thanks for clicking our ad on Instagram") and maintains a professional, concise tone suitable for WhatsApp.
+### **3. finalize_handoff**
 
-📝 Database Schema
+Validates all required fields, then:
 
-The agent writes to the leads collection in Firestore with the following structure:
+- Writes the structured lead JSON to Firestore
+- Generates a final confirmation message
+- Returns success metadata to ADK
 
+---
+
+## 🧱 Firestore Schema
+
+A document is stored in the `leads` collection with the structure:
+
+```json
 {
   "Lead_Status": "Qualified - Hot Lead",
   "Source": "Meta_WA_Ad",
@@ -139,3 +191,41 @@ The agent writes to the leads collection in Firestore with the following structu
   "Conversation_Summary": "String",
   "Hand_Off_Timestamp": "ISO8601 Date"
 }
+
+```
+
+---
+
+## 🧪 Example Conversation Flow
+
+1. User clicks a Meta ad
+2. Bot greets with ad-aware acknowledgement
+3. Bot captures Need → Budget → Timeline
+4. If qualified → saved to Firestore → forwarded to human sales
+5. If not → politely disqualified
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!
+
+If you’d like to improve logic, add tools, or expand qualification methods:
+
+1. Fork the repo
+2. Create a feature branch
+3. Submit a PR
+
+---
+
+## 📄 License
+
+MIT License — feel free to use and adapt for your own projects.
+
+---
+
+## 📬 Contact
+
+For questions, support, or collaboration opportunities:
+
+**muhammad@borobudur.ai**
