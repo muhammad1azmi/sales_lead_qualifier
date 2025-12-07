@@ -1,133 +1,103 @@
 # 🚀 WhatsApp Lead Bot (WLB)
 
-**WhatsApp Lead Bot (WLB)** is an AI-powered qualification agent built.
+**WhatsApp Lead Bot (WLB)** is an AI-powered qualification agent built for **Indosat Ooredoo Hutchison B2B**.
 
-It automates inbound WhatsApp conversations, performs full **BANT qualification**, and hands off only **high-intent SQL leads** to human sales teams.
+It automates inbound WhatsApp conversations, performs full **BANT qualification**, and hands off only **high-intent Sales Qualified Leads (SQLs)** to human sales teams.
+
+The bot stores data in:
+
+- **Firestore** → tracks conversation & state
+- **BigQuery** → stores structured SQL leads
+- **Google Sheets** → provides a clean, real-time dashboard for sales teams
 
 Powered by:
 
-- **Google Agent Development Kit (ADK)**
-- **Gemini 2.5 Flash**
-- **Firebase Firestore**
-- **Google Cloud Secret Manager**
+- Google Agent Development Kit (ADK)
+- Gemini 2.5 Flash
+- Firebase Firestore
+- BigQuery
+- Google Cloud Secret Manager
 
 ---
 
 ## ✨ Features
 
-- **🔎 BANT Qualification**
-    
-    Automatically captures Budget, Authority (inferred), Need, and Timeline.
-    
-- **💾 Persistent State**
-    
-    Conversation progress and final lead data are securely saved in **Firestore**.
-    
-- **🔐 Secure Secrets**
-    
-    API keys and credentials retrieved on-demand from **Secret Manager**.
-    
-- **🛡 Guardrails & Validation**
-    - Rejects pricing or contract discussions.
-    - Identifies and disqualifies unqualified leads (e.g., “just looking”, “no budget”).
-    - Ensures all required fields are collected before handoff.
+### 🔍 Automated BANT Qualification
+
+Captures Budget, Authority (inferred), Need, and Timeline through natural WhatsApp conversation.
+
+### 💾 Hybrid Storage Architecture
+
+- **Firestore**: conversational state & incremental lead data
+- **BigQuery**: clean, normalized SQL lead records
+- **Google Sheets**: human-friendly reporting layer for sales agents
+
+### 🔐 Secure by Design
+
+Secrets (API keys, service credentials) are retrieved from **Google Cloud Secret Manager** — never hardcoded.
+
+### 🛡 Guardrails
+
+- Prevents bot from discussing pricing or contracts
+- Disqualifies low-intent / no-budget leads
+- Ensures required fields are collected before saving to BigQuery
+- Maintains a polite, concise, human-like persona appropriate for WhatsApp
 
 ---
 
-## 📦 Tech Stack
+## 📦 Tech Stack Overview
 
-| Component | Usage |
+| Component | Role |
 | --- | --- |
-| **Python 3.10+** | Primary runtime |
 | **Google ADK** | Agent orchestration |
-| **Gemini 2.5 Flash** | LLM reasoning & dialog |
-| **Firestore** | Lead persistence |
-| **Secret Manager** | API key storage |
-| **Google Cloud CLI** | Local auth |
+| **Gemini 2.5 Flash** | Dialog reasoning |
+| **Firestore** | State persistence |
+| **BigQuery** | Lead warehouse |
+| **Google Sheets** | Sales dashboards |
+| **Secret Manager** | Secure API key storage |
+| **Python 3.10+** | Runtime |
 
 ---
 
 ## 🛠 Prerequisites
 
-Before you begin, ensure you have:
+Before setup, ensure you have:
 
-- ✔ Python **3.10+**
-- ✔ A **Google Cloud Project**
-- ✔ **Firestore**, **Secret Manager**, and (optionally) **Vertex AI** enabled
-- ✔ Installed & authenticated **Google Cloud CLI**
-    
-    ```bash
-    gcloud auth application-default login
-    
-    ```
-    
+- A Google Cloud Project
+- Firestore, BigQuery, Secret Manager, and (optional) Vertex AI APIs enabled
+- Google Cloud CLI installed and authenticated
+- Python 3.10 or higher
 
----
+You will also need to configure the following:
 
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone https://github.com/yourname/wlb.git
-cd wlb_project
-
-```
-
-### 2️⃣ Install dependencies
-
-```bash
-pip install -r requirements.txt
-
-```
-
-### 3️⃣ Configure Google Cloud
-
-### **A. Firestore**
-
-1. Open Firebase or GCP Console
-2. Create a Firestore **Native mode** database
-3. Ensure your local ADC user has write permissions
-
-### **B. Secret Manager**
-
-Create a secret named:
-
-```
-gemini-api-key
-
-```
-
-Add a new version with your actual **Google AI Studio** key.
-
-### **C. Environment Variable**
-
-```bash
-export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
-
-```
+- A Firestore database in **Native mode**
+- A Secret in **Secret Manager** to store your Gemini API key
+- A BigQuery dataset and table for SQL leads (`lead_data.sql_leads`)
+- Google Sheets access connected to BigQuery for your sales team
 
 ---
 
-## ▶️ Running the Agent
+## ⚙️ Setup Steps
 
-Use the ADK web interface for local development and testing.
+### 1️⃣ Repository Setup
 
-1. **Start ADK:**
-    
-    ```bash
-    adk web
-    
-    ```
-    
-2. **Open browser:**
-    
-    [http://localhost:8000](http://localhost:8000/)
-    
-3. **Select the agent:**
-    
-    Choose `whatsapp_lead_bot`
-    
+Clone the project and install dependencies.
+
+### 2️⃣ Google Cloud Configuration
+
+- Set up Firestore
+- Create your Secret Manager entry
+- Configure BigQuery dataset & table
+- Set up service account permissions if running outside Cloud Shell or ADC
+
+### 3️⃣ Running the Agent
+
+Use the ADK web interface:
+
+1. Start the ADK server
+2. Open the local UI
+3. Select **whatsapp_lead_bot**
+4. Start testing conversations
 
 ---
 
@@ -135,13 +105,14 @@ Use the ADK web interface for local development and testing.
 
 ```
 wlb_project/
+├── README.md                # Documentation (this file)
 ├── requirements.txt         # Python dependencies
-├── README.md                # This documentation
+├── create_resources.py      # BigQuery setup script (no code shown here)
 └── wlb_agent/
-    ├── __init__.py          # Ensures config loads first
-    ├── agent.py             # Persona, guardrails, LLM config
-    ├── config.py            # Firestore + Secret Manager setup
-    └── tools.py             # BANT logic & DB interactions
+    ├── agent.py             # Persona, system prompts, guardrails
+    ├── config.py            # Firestore, BigQuery & Secret Manager config
+    ├── tools.py             # BANT logic + DB write tools
+    └── __init__.py          # Ensures config loads before agent startup
 
 ```
 
@@ -149,60 +120,78 @@ wlb_project/
 
 ## 🧠 How It Works
 
-### **1. update_lead_profile (tools.py)**
+### Step 1: Intake & Slot Filling
 
-Continuously fills in the session profile (name, need, budget, timeline).
+The agent gathers user information in a structured way (name, company, need, budget, timeline). Missing fields trigger follow-up questions.
 
-Identifies gaps and instructs the LLM to ask only what is missing.
+### Step 2: Qualification
 
-### **2. disqualify_lead**
+Guardrails determine whether the lead is:
 
-Triggered when:
+- **Qualified – Hot Lead**
+- **Medium Intent**
+- **Disqualified**
 
-- User expresses low/no intent
-- Budget = 0
-- Browsing only
+### Step 3: Data Persistence
 
-Marks lead as *Disqualified* and gracefully ends the flow.
+When ready:
 
-### **3. finalize_handoff**
+- Firestore stores the conversation context
+- BigQuery receives a clean SQL lead row (via the `lead_data.sql_leads` table)
+- Google Sheets gives the sales team a live, filterable view of leads via BigQuery → Sheets connector
 
-Validates all required fields, then:
+### Step 4: Handoff
 
-- Writes the structured lead JSON to Firestore
-- Generates a final confirmation message
-- Returns success metadata to ADK
-
----
-
-## 🧱 Firestore Schema
-
-A document is stored in the `leads` collection with the structure:
-
-```json
-{
-  "Lead_Status": "Qualified - Hot Lead",
-  "Source": "Meta_WA_Ad",
-  "Full_Name": "String",
-  "Company_Name": "String",
-  "Specific_Need": "String",
-  "Budget_Range": "String",
-  "Timeline_Urgency": "String",
-  "Conversation_Summary": "String",
-  "Hand_Off_Timestamp": "ISO8601 Date"
-}
-
-```
+The bot notifies the user that a sales agent will contact them and finalizes the lead record.
 
 ---
 
-## 🧪 Example Conversation Flow
+## 🧱 Data Models
 
-1. User clicks a Meta ad
-2. Bot greets with ad-aware acknowledgement
-3. Bot captures Need → Budget → Timeline
-4. If qualified → saved to Firestore → forwarded to human sales
-5. If not → politely disqualified
+### Firestore (Lead Documents)
+
+Used for incremental lead capture and conversation state tracking.
+
+### BigQuery (Sales Qualified Leads)
+
+The BigQuery table acts as a warehouse for human sales teams and analytics.
+
+It contains fields such as:
+
+- Lead status
+- Name, phone number
+- Company & industry
+- Specific need
+- Budget range
+- Timeline urgency
+- Conversation summary
+- Timestamp
+
+### Google Sheets (Sales Dashboard)
+
+Designed for daily use by sales teams:
+
+- Pulls data directly from BigQuery
+- Provides real-time filtering, sorting, notes, and follow-up tracking
+- Can be extended with Looker Studio dashboards for management
+
+---
+
+## 📊 Sales Team Workflow
+
+1. Lead arrives through WhatsApp
+2. WLB qualifies and stores data in BigQuery
+3. Sales agents open the connected Google Sheets
+4. They use filters such as:
+    - Industry
+    - Timeline urgency
+    - Budget range
+    - Lead source
+5. Agents update follow-up status directly in Sheets
+
+This removes manual data entry and ensures marketing → sales alignment.
+
+---
 
 ---
 
